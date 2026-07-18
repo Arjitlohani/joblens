@@ -69,9 +69,9 @@ export default function App() {
               <div className="why">LiveCareer survey of 918 HR professionals, 2025</div>
             </div>
             <div className="stat-tile" role="listitem">
-              <div className="big">+40%</div>
-              <div>more likely to reach a human with matched keywords</div>
-              <div className="why">Yet 54% of candidates never tailor their resume</div>
+              <div className="big">~60%</div>
+              <div>ghost-job rate in the worst sectors</div>
+              <div className="why">Government roles top the list; education/health ≈50%, tech ≈48%</div>
             </div>
           </div>
           <Analyzer seed={analyzerSeed} seedNonce={seedNonce} />

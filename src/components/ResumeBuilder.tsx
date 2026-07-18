@@ -342,9 +342,11 @@ export function ResumeBuilder() {
                 </label>
               </div>
               <p className="field-hint" style={{ display: 'block', marginTop: 10, marginLeft: 0 }}>
-                Use this style for in-person, hospitality, and human-first applications. For online
-                applications through job portals, the ATS-first style parses more reliably — many
-                ATS systems can't read photos, and in some countries photos invite bias screening.
+                The downloaded PDF and Word files use a colorful two-column layout — your photo,
+                contact, education and skills in a 1/3 side panel, everything else in the 2/3 main
+                column. The on-page preview stays plain. Use this style for in-person and
+                human-first applications; for online job portals the ATS-first style parses more
+                reliably.
               </p>
             </div>
           )}

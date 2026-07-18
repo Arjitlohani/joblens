@@ -4,9 +4,8 @@ import { analyze } from '../engine/analyze';
 import { decodeBuzzwords } from '../engine/buzzwords';
 import { ScoreDial } from './ScoreDial';
 import { FindingsList, SEVERITY_COLOR } from './FindingsList';
-import { MatchPanel } from './MatchPanel';
 import { RequirementsPanel } from './RequirementsPanel';
-import { GENUINE_POSTING, GHOST_POSTING, SCAM_POSTING, SAMPLE_RESUME } from '../examples';
+import { GENUINE_POSTING, GHOST_POSTING, SCAM_POSTING } from '../examples';
 
 const VERDICT_META: Record<Verdict, { icon: string; title: string; color: string }> = {
   apply: { icon: '✅', title: 'Worth applying', color: 'var(--good)' },
@@ -27,6 +26,41 @@ const SCAM_LEVEL = {
   danger: { label: 'Danger', icon: '✕', color: 'var(--critical)' },
 } as const;
 
+/**
+ * Public CORS pass-throughs used only to fetch the posting URL the user gives
+ * us (tried in order — these free proxies come and go).
+ */
+const PROXIES = [
+  (u: string) => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
+  (u: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+];
+
+async function fetchPostingText(url: string): Promise<string> {
+  let lastError: unknown = new Error('no proxy available');
+  for (const makeProxyUrl of PROXIES) {
+    try {
+      const res = await fetch(makeProxyUrl(url), { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      doc
+        .querySelectorAll('script,style,noscript,nav,footer,header,iframe')
+        .forEach((n) => n.remove());
+      const text = (doc.body.textContent ?? '')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{2,}/g, '\n')
+        .trim();
+      if (text.length < 200) {
+        throw new Error('too little text — the page is probably rendered with JavaScript');
+      }
+      return text;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError;
+}
+
 interface Props {
   /** Posting text handed over from the Job Search tab. */
   seed?: string;
@@ -36,8 +70,8 @@ interface Props {
 
 export function Analyzer({ seed, seedNonce }: Props) {
   const [jobText, setJobText] = useState('');
-  const [resumeText, setResumeText] = useState('');
-  const [showResume, setShowResume] = useState(false);
+  const [url, setUrl] = useState('');
+  const [fetchState, setFetchState] = useState<'idle' | 'loading' | 'failed'>('idle');
   const [postingAge, setPostingAge] = useState<PostingAge>('unknown');
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
 
@@ -53,15 +87,25 @@ export function Analyzer({ seed, seedNonce }: Props) {
 
   function run() {
     if (!canAnalyze) return;
-    setAnalysis(analyze({ jobText, resumeText: showResume ? resumeText : undefined, postingAge }));
+    setAnalysis(analyze({ jobText, postingAge }));
   }
 
-  function loadExample(job: string, withResume: boolean) {
-    setJobText(job);
-    if (withResume) {
-      setShowResume(true);
-      setResumeText(SAMPLE_RESUME);
+  async function fetchUrl() {
+    const u = url.trim();
+    if (!/^https?:\/\//i.test(u)) return;
+    setFetchState('loading');
+    try {
+      const text = await fetchPostingText(u);
+      setJobText(text);
+      setAnalysis(analyze({ jobText: text, postingAge }));
+      setFetchState('idle');
+    } catch {
+      setFetchState('failed');
     }
+  }
+
+  function loadExample(job: string) {
+    setJobText(job);
     setAnalysis(null);
   }
 
@@ -75,16 +119,45 @@ export function Analyzer({ seed, seedNonce }: Props) {
   return (
     <>
       <div className="input-card">
-        <label className="field-label" htmlFor="jd">
-          Paste the job posting
-          <span className="field-hint">the whole thing — title, description, requirements</span>
+        <label className="field-label" htmlFor="joburl">
+          Check a job posting
+          <span className="field-hint">paste a link, or paste the posting text below</span>
         </label>
-        <textarea
-          id="jd"
-          value={jobText}
-          onChange={(e) => setJobText(e.target.value)}
-          placeholder="Paste the full job posting here…"
-        />
+        <div className="controls-row" style={{ marginTop: 4 }}>
+          <input
+            id="joburl"
+            className="search-input"
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchUrl()}
+            placeholder="https://… link to the job posting"
+          />
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={fetchUrl}
+            disabled={fetchState === 'loading' || !/^https?:\/\//i.test(url.trim())}
+          >
+            {fetchState === 'loading' ? 'Fetching…' : 'Fetch & check'}
+          </button>
+        </div>
+        {fetchState === 'failed' && (
+          <p className="section-sub" style={{ marginTop: 8, color: 'var(--serious)' }}>
+            Couldn't read that page (many job sites block automated fetching or render with
+            JavaScript). Copy the posting text and paste it below instead.
+          </p>
+        )}
+
+        <div style={{ marginTop: 16 }}>
+          <textarea
+            id="jd"
+            value={jobText}
+            onChange={(e) => setJobText(e.target.value)}
+            placeholder="…or copy-paste the job posting here — title, description, requirements, all of it"
+            aria-label="Job posting text"
+          />
+        </div>
 
         <div className="controls-row">
           <label htmlFor="age" style={{ color: 'var(--ink-2)', fontSize: '0.9rem' }}>
@@ -101,31 +174,8 @@ export function Analyzer({ seed, seedNonce }: Props) {
             <option value="1to3m">1–3 months ago</option>
             <option value="over3m">More than 3 months ago</option>
           </select>
-
-          <button type="button" className="btn btn-ghost" onClick={() => setShowResume((s) => !s)}>
-            {showResume ? '− Hide resume' : '+ Add your resume for an ATS match'}
-          </button>
-        </div>
-
-        {showResume && (
-          <div style={{ marginTop: 16 }}>
-            <label className="field-label" htmlFor="resume">
-              Paste your resume
-              <span className="field-hint">plain text is fine — it never leaves this page</span>
-            </label>
-            <textarea
-              id="resume"
-              className="resume-box"
-              value={resumeText}
-              onChange={(e) => setResumeText(e.target.value)}
-              placeholder="Paste your resume text here…"
-            />
-          </div>
-        )}
-
-        <div className="controls-row">
           <button type="button" className="btn btn-primary" onClick={run} disabled={!canAnalyze}>
-            Analyze this posting
+            Check it
           </button>
           {!canAnalyze && jobText.trim().length > 0 && (
             <span style={{ color: 'var(--ink-muted)', fontSize: '0.85rem' }}>
@@ -136,13 +186,13 @@ export function Analyzer({ seed, seedNonce }: Props) {
 
         <div className="examples-row">
           Try an example:
-          <button type="button" className="btn btn-ghost" onClick={() => loadExample(GENUINE_POSTING, true)}>
+          <button type="button" className="btn btn-ghost" onClick={() => loadExample(GENUINE_POSTING)}>
             Genuine posting
           </button>
-          <button type="button" className="btn btn-ghost" onClick={() => loadExample(GHOST_POSTING, false)}>
+          <button type="button" className="btn btn-ghost" onClick={() => loadExample(GHOST_POSTING)}>
             Ghost job
           </button>
-          <button type="button" className="btn btn-ghost" onClick={() => loadExample(SCAM_POSTING, false)}>
+          <button type="button" className="btn btn-ghost" onClick={() => loadExample(SCAM_POSTING)}>
             Scam
           </button>
         </div>
@@ -175,27 +225,6 @@ export function Analyzer({ seed, seedNonce }: Props) {
               levelLabel={SCAM_LEVEL[analysis.scam.level].label}
               levelIcon={SCAM_LEVEL[analysis.scam.level].icon}
             />
-            {analysis.match && analysis.match.totalKeywords > 0 && (
-              <ScoreDial
-                title="Resume match"
-                value={analysis.match.score}
-                color={
-                  analysis.match.score >= 60
-                    ? 'var(--good)'
-                    : analysis.match.score >= 35
-                      ? 'var(--warning)'
-                      : 'var(--serious)'
-                }
-                levelLabel={
-                  analysis.match.score >= 60
-                    ? 'Strong coverage'
-                    : analysis.match.score >= 35
-                      ? 'Needs tailoring'
-                      : 'Big gaps'
-                }
-                levelIcon={analysis.match.score >= 60 ? '✓' : '△'}
-              />
-            )}
           </div>
 
           {analysis.scam.findings.length > 0 && (
@@ -242,19 +271,6 @@ export function Analyzer({ seed, seedNonce }: Props) {
           )}
 
           <RequirementsPanel requirements={analysis.requirements} />
-
-          {analysis.match &&
-            (analysis.match.totalKeywords > 0 ? (
-              <MatchPanel match={analysis.match} />
-            ) : (
-              <div className="section">
-                <h3>ATS resume match</h3>
-                <p className="section-sub">
-                  This posting doesn't name any recognizable skills to match against — which is
-                  itself a sign of a vague, copy-paste description.
-                </p>
-              </div>
-            ))}
         </div>
       )}
     </>

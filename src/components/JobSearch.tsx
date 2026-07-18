@@ -57,6 +57,7 @@ function ListingCard({ job, onInspect }: { job: JobListing; onInspect: Props['on
 
 export function JobSearch({ onInspect }: Props) {
   const [query, setQuery] = useState('');
+  const [location, setLocation] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [failedSources, setFailedSources] = useState<string[]>([]);
@@ -64,10 +65,10 @@ export function JobSearch({ onInspect }: Props) {
   async function run() {
     setStatus('loading');
     try {
-      const outcome = await searchJobs(query.trim());
+      const outcome = await searchJobs(query, location);
       setJobs(outcome.jobs);
       setFailedSources(outcome.failedSources);
-      setStatus(outcome.jobs.length === 0 && outcome.failedSources.length === 2 ? 'error' : 'done');
+      setStatus(outcome.jobs.length === 0 && outcome.failedSources.length === 3 ? 'error' : 'done');
     } catch {
       setStatus('error');
     }
@@ -77,10 +78,9 @@ export function JobSearch({ onInspect }: Props) {
     <>
       <div className="input-card">
         <label className="field-label" htmlFor="jobquery">
-          Search live listings
+          What & where
           <span className="field-hint">
-            free public job feeds (Remotive, Arbeitnow) — mostly remote & tech-leaning roles.
-            Every result is auto-scanned by the JobLens engine.
+            every result is auto-scanned for ghost-job and scam signals before you click
           </span>
         </label>
         <div className="controls-row" style={{ marginTop: 4 }}>
@@ -90,14 +90,25 @@ export function JobSearch({ onInspect }: Props) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && run()}
-            placeholder="e.g. frontend developer, customer support, data entry…"
+            placeholder="Keyword: frontend developer, customer support, barista…"
+          />
+          <input
+            id="joblocation"
+            className="search-input"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && run()}
+            placeholder="Location: Sydney, Germany, USA, remote…"
+            aria-label="Location"
           />
           <button type="button" className="btn btn-primary" onClick={run} disabled={status === 'loading'}>
             {status === 'loading' ? 'Searching…' : 'Search'}
           </button>
         </div>
         <p className="section-sub" style={{ marginTop: 10, marginBottom: 0 }}>
-          Only your search term is sent to the job APIs — nothing from your resume or analyses.
+          Sources: free public feeds (Remotive, Arbeitnow, Jobicy) — strongest for remote and
+          tech/EU roles. Roles marked “Worldwide/Anywhere” match any location you type. Only the
+          keyword is sent to the feeds; location filtering happens on your device.
         </p>
       </div>
 
@@ -129,8 +140,9 @@ export function JobSearch({ onInspect }: Props) {
             <div className="section">
               <h3>No matches</h3>
               <p className="section-sub">
-                These feeds skew remote/tech. Try a broader term like "support", "developer", or
-                "marketing".
+                Try a broader keyword ("support", "developer", "marketing"), a country instead of
+                a city, or leave location empty — these free feeds skew remote/tech, so city-level
+                filters can come up empty even when jobs exist elsewhere.
               </p>
             </div>
           )}

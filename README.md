@@ -8,10 +8,10 @@ Three tools in one page:
 Fill in your details and get a **live ATS-readiness score (0–100)** with a point-by-point checklist: action verbs, quantified bullets, keyword zones, contact completeness. Optionally paste a target job posting and the score includes **keyword coverage against that exact job**. Download as PDF (via a deliberately single-column, graphics-free print layout — the format that scores ~18 points higher in real ATS scans) or as plain .txt. Your data saves to your own browser's localStorage and never leaves your device.
 
 ### 🔎 Job Search
-Search live listings from free public job feeds (Remotive, Arbeitnow). The killer feature: **every result is auto-scanned by the JobLens analysis engine** and badged — Looks clean / Some flags / Ghost-job signals / Scam signals — before you click. One click hands any listing to the full analyzer. Only your search term is sent to the feeds; nothing else ever leaves the page.
+Search by **keyword and location** across free public job feeds (Remotive, Arbeitnow, Jobicy). The killer feature: **every result is auto-scanned by the JobLens analysis engine** and badged — Looks clean / Some flags / Ghost-job signals / Scam signals — before you click. One click hands any listing to the full analyzer. Only the keyword is sent to the feeds; location filtering happens on-device.
 
 ### 🛡️ Check a Posting
-Paste any job posting and get a verdict in seconds:
+Paste a **link** (fetched via a public CORS proxy, with a paste fallback) or the posting text, and get a verdict in seconds:
 
 - 👻 **Ghost-job risk** — is anyone actually being hired for this role?
 - 🛑 **Scam signals** — patterns drawn from FTC consumer alerts on employment fraud

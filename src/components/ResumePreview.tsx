@@ -91,69 +91,84 @@ function EducationBlocks({ resume: r }: Props) {
   );
 }
 
+/** The colorful 1/3 + 2/3 sidebar sheet — used only for printing/download. */
+function SidebarSheet({ resume: r }: Props) {
+  const ink = sidebarInk(r.accentColor);
+  return (
+    <div
+      className="resume-sheet print-only"
+      data-template="photo"
+      data-printable="true"
+      style={{ ['--rs-accent' as string]: r.accentColor, ['--rs-accent-ink' as string]: ink }}
+    >
+      <aside className="rs-side">
+        {r.photo && <img className="rs-photo" src={r.photo} alt="" />}
+        <h1>{r.fullName || 'Your Name'}</h1>
+        {r.headline && <p className="rs-headline">{r.headline}</p>}
+        <h2>Contact</h2>
+        <ul className="rs-contact-list">
+          {[r.email, r.phone, r.location, r.links].filter(Boolean).map((c, i) => (
+            <li key={i}>{c}</li>
+          ))}
+        </ul>
+        <EducationBlocks resume={r} />
+        <SkillsBlocks resume={r} />
+      </aside>
+      <div className="rs-main">
+        {r.summary.trim() && (
+          <>
+            <h2>Professional Summary</h2>
+            <p>{r.summary.trim()}</p>
+          </>
+        )}
+        <ExperienceBlocks resume={r} />
+        <CertBlocks resume={r} />
+      </div>
+    </div>
+  );
+}
+
 /**
- * The printable resume sheet, in two styles:
- *  - 'ats':   single column, no graphics — the parser-first layout.
- *  - 'photo': colorful one-page sidebar layout — photo, contact, education
- *             and skills in a 1/3 side panel; summary, experience and
- *             certifications in the 2/3 main column.
- * This exact element is what "Download as PDF" prints.
+ * On screen the preview is always the plain single-column sheet, whatever
+ * the chosen style. The colorful 1/3 + 2/3 sidebar layout of the 'photo'
+ * style exists only in the downloads: a hidden print-only sheet (used when
+ * the browser prints to PDF) and the Word export.
  */
 export function ResumePreview({ resume: r }: Props) {
-  if (r.template === 'photo') {
-    const ink = sidebarInk(r.accentColor);
-    return (
+  const contact = [r.email, r.phone, r.location, r.links].filter(Boolean).join('  •  ');
+  const isPhoto = r.template === 'photo';
+
+  return (
+    <>
       <div
         className="resume-sheet"
-        data-template="photo"
+        data-template="ats"
+        data-printable={isPhoto ? 'false' : 'true'}
         id="resume-sheet"
-        style={{ ['--rs-accent' as string]: r.accentColor, ['--rs-accent-ink' as string]: ink }}
       >
-        <aside className="rs-side">
-          {r.photo && <img className="rs-photo" src={r.photo} alt="" />}
-          <h1>{r.fullName || 'Your Name'}</h1>
-          {r.headline && <p className="rs-headline">{r.headline}</p>}
-          <h2>Contact</h2>
-          <ul className="rs-contact-list">
-            {[r.email, r.phone, r.location, r.links].filter(Boolean).map((c, i) => (
-              <li key={i}>{c}</li>
-            ))}
-          </ul>
-          <EducationBlocks resume={r} />
-          <SkillsBlocks resume={r} />
-        </aside>
-        <div className="rs-main">
-          {r.summary.trim() && (
-            <>
-              <h2>Professional Summary</h2>
-              <p>{r.summary.trim()}</p>
-            </>
-          )}
-          <ExperienceBlocks resume={r} />
-          <CertBlocks resume={r} />
+        <div className="rs-header">
+          <div>
+            <h1>{r.fullName || 'Your Name'}</h1>
+            {r.headline && <p className="rs-headline">{r.headline}</p>}
+            {contact && <p className="rs-contact">{contact}</p>}
+          </div>
+          {isPhoto && r.photo && <img className="rs-photo-small" src={r.photo} alt="" />}
         </div>
+
+        {r.summary.trim() && (
+          <>
+            <h2>Professional Summary</h2>
+            <p>{r.summary.trim()}</p>
+          </>
+        )}
+
+        <SkillsBlocks resume={r} />
+        <ExperienceBlocks resume={r} />
+        <EducationBlocks resume={r} />
+        <CertBlocks resume={r} />
       </div>
-    );
-  }
 
-  const contact = [r.email, r.phone, r.location, r.links].filter(Boolean).join('  •  ');
-  return (
-    <div className="resume-sheet" data-template="ats" id="resume-sheet">
-      <h1>{r.fullName || 'Your Name'}</h1>
-      {r.headline && <p className="rs-headline">{r.headline}</p>}
-      {contact && <p className="rs-contact">{contact}</p>}
-
-      {r.summary.trim() && (
-        <>
-          <h2>Professional Summary</h2>
-          <p>{r.summary.trim()}</p>
-        </>
-      )}
-
-      <SkillsBlocks resume={r} />
-      <ExperienceBlocks resume={r} />
-      <EducationBlocks resume={r} />
-      <CertBlocks resume={r} />
-    </div>
+      {isPhoto && <SidebarSheet resume={r} />}
+    </>
   );
 }
