@@ -15,7 +15,10 @@ export function buildResumeText(r: ResumeData): string {
     parts.push(`PROFESSIONAL SUMMARY\n${r.summary.trim()}`);
   }
 
-  if (r.skills.length > 0) {
+  if (r.skillsMode === 'split') {
+    if (r.skills.length > 0) parts.push(`TECHNICAL SKILLS\n${r.skills.join(', ')}`);
+    if (r.softSkills.length > 0) parts.push(`SOFT SKILLS\n${r.softSkills.join(', ')}`);
+  } else if (r.skills.length > 0) {
     parts.push(`SKILLS\n${r.skills.join(', ')}`);
   }
 
@@ -44,7 +47,7 @@ export function buildResumeText(r: ResumeData): string {
   }
 
   if (r.certifications.length > 0) {
-    parts.push(`CERTIFICATIONS\n${r.certifications.join('\n')}`);
+    parts.push(`CERTIFICATIONS & ACHIEVEMENTS\n${r.certifications.join('\n')}`);
   }
 
   return parts.join('\n\n');

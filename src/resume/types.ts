@@ -17,6 +17,10 @@ export interface EducationEntry {
   year: string;
 }
 
+export type ResumeTemplate = 'ats' | 'photo';
+
+export type SkillsMode = 'combined' | 'split';
+
 export interface ResumeData {
   fullName: string;
   email: string;
@@ -26,10 +30,18 @@ export interface ResumeData {
   links: string;
   headline: string;
   summary: string;
+  /** 'combined': one skills list. 'split': `skills` = hard, `softSkills` = soft. */
+  skillsMode: SkillsMode;
   skills: string[];
+  softSkills: string[];
   experience: ExperienceEntry[];
   education: EducationEntry[];
+  /** Certifications and achievements — rendered as one section. */
   certifications: string[];
+  /** 'ats': parser-first layout. 'photo': compact one-page with a photo. */
+  template: ResumeTemplate;
+  /** Data-URL of the photo, only used by the 'photo' template. */
+  photo?: string;
 }
 
 export function emptyResume(): ResumeData {
@@ -41,10 +53,14 @@ export function emptyResume(): ResumeData {
     links: '',
     headline: '',
     summary: '',
+    skillsMode: 'combined',
     skills: [],
+    softSkills: [],
     experience: [],
     education: [],
     certifications: [],
+    template: 'ats',
+    photo: undefined,
   };
 }
 

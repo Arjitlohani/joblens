@@ -1,26 +1,27 @@
 /* JobLens design system — dark-first, validated dataviz status palette. */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --page: #0d0d0d;
-  --surface: #1a1a19;
-  --surface-2: #232322;
-  --border: rgba(255, 255, 255, 0.1);
-  --ink: #ffffff;
-  --ink-2: #c3c2b7;
-  --ink-muted: #898781;
+  /* Minimalist grey system: light page, graphite accents. */
+  --page: #ececec;
+  --surface: #fafafa;
+  --surface-2: #efefef;
+  --border: rgba(0, 0, 0, 0.1);
+  --ink: #191919;
+  --ink-2: #4b4b4b;
+  --ink-muted: #8a8a8a;
 
-  --accent: #3987e5;
-  --accent-2: #9085e9;
+  --accent: #3d3d3d;
+  --accent-2: #757575;
 
-  /* Status palette — fixed, validated ≥3:1 on the dark surface. */
-  --good: #0ca30c;
-  --warning: #fab219;
-  --serious: #ec835a;
-  --critical: #d03b3b;
+  /* Status palette — fixed, always paired with an icon + label. */
+  --good: #0a8a0a;
+  --warning: #a36d00;
+  --serious: #c05621;
+  --critical: #c22f2f;
 
-  --radius: 14px;
+  --radius: 12px;
   --radius-sm: 8px;
 
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -34,7 +35,8 @@
 
 body {
   margin: 0;
-  background: var(--page);
+  background: linear-gradient(180deg, #f2f2f2 0%, #e4e4e4 55%, #d9d9d9 100%);
+  background-attachment: fixed;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
@@ -147,7 +149,7 @@ body {
 textarea {
   width: 100%;
   min-height: 200px;
-  background: var(--page);
+  background: #ffffff;
   color: var(--ink);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -177,7 +179,7 @@ textarea.resume-box {
 }
 
 select {
-  background: var(--page);
+  background: #ffffff;
   color: var(--ink);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -201,8 +203,8 @@ select {
 }
 
 .btn-primary {
-  background: linear-gradient(120deg, var(--accent), var(--accent-2));
-  color: #0d0d0d;
+  background: linear-gradient(120deg, #454545, #1b1b1b);
+  color: #ffffff;
   font-size: 1rem;
 }
 
@@ -376,7 +378,7 @@ select {
   margin-top: 6px;
   font-size: 0.85rem;
   color: var(--ink-muted);
-  background: var(--page);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 2px 10px;
@@ -544,7 +546,7 @@ select {
 
 .form-grid input,
 .search-input {
-  background: var(--page);
+  background: #ffffff;
   color: var(--ink);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -609,12 +611,79 @@ select {
 .resume-sheet {
   background: #ffffff;
   color: #111111;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 44px 48px;
   max-width: 800px;
   font-size: 0.95rem;
   line-height: 1.5;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+.rs-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.rs-photo {
+  width: 86px;
+  height: 86px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* Compact one-page variant. */
+.resume-sheet[data-template='photo'] {
+  font-size: 0.88rem;
+  line-height: 1.42;
+  padding: 34px 38px;
+}
+
+.resume-sheet[data-template='photo'] h1 {
+  font-size: 1.45rem;
+}
+
+.resume-sheet[data-template='photo'] h2 {
+  margin: 14px 0 5px;
+}
+
+.resume-sheet[data-template='photo'] .rs-role {
+  margin-bottom: 8px;
+}
+
+/* Segmented option buttons. */
+.seg-row {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.seg-btn {
+  background: transparent;
+  border: none;
+  padding: 9px 16px;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.seg-btn + .seg-btn {
+  border-left: 1px solid var(--border);
+}
+
+.seg-btn[data-active='true'] {
+  background: linear-gradient(120deg, #454545, #1b1b1b);
+  color: #ffffff;
 }
 
 .resume-sheet h1 {
@@ -667,6 +736,10 @@ select {
 }
 
 @media print {
+  body {
+    background: #ffffff;
+  }
+
   body * {
     visibility: hidden;
   }

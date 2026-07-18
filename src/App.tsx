@@ -78,30 +78,6 @@ export default function App() {
         </>
       )}
 
-      <footer className="footer">
-        <h4>Why trust these checks?</h4>
-        <p>
-          JobLens rules are built from published research and official guidance: ghost-job
-          statistics from Greenhouse, Clarify Capital and LiveCareer (2025) as reported by{' '}
-          <a href="https://www.forbes.com/sites/rachelwells/2026/04/09/1-in-7-job-postings-are-ghost-jobs-new-study-reveals-here-are-3-steps-to-avoid-fake-job-ads/">
-            Forbes
-          </a>{' '}
-          and{' '}
-          <a href="https://www.cnbc.com/2025/11/11/ghost-job-postings-add-another-layer-of-uncertainty-to-stalled-jobs-picture.html">
-            CNBC
-          </a>
-          ; scam patterns from the{' '}
-          <a href="https://consumer.ftc.gov/articles/job-scams">FTC's job-scam consumer alerts</a>;
-          and ATS keyword findings from 2025–26 resume-scan studies. Resume data is stored only in
-          your own browser (localStorage). Job search sends your search term — and nothing else —
-          to the public Remotive and Arbeitnow job feeds.
-        </p>
-        <p>
-          JobLens is a decision aid, not a guarantee — no tool can promise a specific ATS outcome,
-          because every employer configures their own. Report suspected employment scams at{' '}
-          <a href="https://reportfraud.ftc.gov">ReportFraud.ftc.gov</a>.
-        </p>
-      </footer>
     </div>
   );
 }

@@ -63,13 +63,14 @@ export function atsCheck(resume: ResumeData, targetJobText?: string): AtsScore {
     'A 2–4 sentence summary is a high-priority keyword zone. Aim for 80–600 characters.',
   );
 
+  const skillCount = resume.skills.length + resume.softSkills.length;
   add(
     'skills',
     'At least 6 skills listed',
     10,
-    resume.skills.length >= 6,
+    skillCount >= 6,
     'The skills section is the #1 place ATS software looks for keyword matches.',
-    Math.min(resume.skills.length, 5),
+    Math.min(skillCount, 5),
   );
 
   add(

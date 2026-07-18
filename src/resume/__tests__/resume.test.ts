@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildResumeText } from '../buildText';
+import { buildDocHtml } from '../exportDoc';
 import { atsCheck } from '../atsCheck';
 import { emptyResume, type ResumeData } from '../types';
 
@@ -13,7 +14,11 @@ function strongResume(): ResumeData {
     headline: 'Frontend Developer',
     summary:
       'Frontend developer with 3 years of experience building accessible React applications. Shipped customer-facing features used by 40,000 monthly users and cut page load times by 45%.',
+    skillsMode: 'combined' as const,
     skills: ['JavaScript', 'TypeScript', 'React', 'CSS', 'Git', 'REST APIs', 'Jest'],
+    softSkills: [],
+    template: 'ats' as const,
+    photo: undefined,
     experience: [
       {
         id: 'e1',
@@ -54,6 +59,47 @@ describe('buildResumeText', () => {
   it('renders bullets with dashes', () => {
     const text = buildResumeText(strongResume());
     expect(text).toContain('- Built a React component library');
+  });
+
+  it('splits hard and soft skills when skillsMode is split', () => {
+    const r = strongResume();
+    r.skillsMode = 'split';
+    r.softSkills = ['Communication', 'Teamwork'];
+    const text = buildResumeText(r);
+    expect(text).toContain('TECHNICAL SKILLS\nJavaScript');
+    expect(text).toContain('SOFT SKILLS\nCommunication, Teamwork');
+    expect(text).not.toContain('SKILLS\nJavaScript, TypeScript, React, CSS, Git, REST APIs, Jest\n\nWORK');
+  });
+
+  it('titles the combined certifications section', () => {
+    const text = buildResumeText(strongResume());
+    expect(text).toContain('CERTIFICATIONS & ACHIEVEMENTS');
+  });
+});
+
+describe('buildDocHtml', () => {
+  it('produces Word-compatible HTML with all sections', () => {
+    const html = buildDocHtml(strongResume());
+    expect(html).toContain('urn:schemas-microsoft-com:office:word');
+    expect(html).toContain('<h1>Sam Candidate</h1>');
+    expect(html).toContain('Work Experience');
+    expect(html).toContain('Certifications &amp; Achievements');
+  });
+
+  it('escapes HTML in user content', () => {
+    const r = strongResume();
+    r.fullName = 'Sam <script>alert(1)</script>';
+    const html = buildDocHtml(r);
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('&lt;script&gt;');
+  });
+
+  it('embeds the photo only for the photo template', () => {
+    const r = strongResume();
+    r.photo = 'data:image/jpeg;base64,abc';
+    expect(buildDocHtml(r)).not.toContain('<img');
+    r.template = 'photo';
+    expect(buildDocHtml(r)).toContain('<img src="data:image/jpeg;base64,abc"');
   });
 });
 

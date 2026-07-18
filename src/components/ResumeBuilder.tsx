@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { emptyResume, type EducationEntry, type ExperienceEntry, type ResumeData } from '../resume/types';
 import { atsCheck } from '../resume/atsCheck';
 import { buildResumeText } from '../resume/buildText';
+import { downloadDoc } from '../resume/exportDoc';
 import { ScoreDial } from './ScoreDial';
 import { ResumePreview } from './ResumePreview';
 
@@ -30,6 +31,7 @@ function scoreColor(score: number): string {
 export function ResumeBuilder() {
   const [resume, setResume] = useState<ResumeData>(loadSaved);
   const [skillsRaw, setSkillsRaw] = useState(() => loadSaved().skills.join(', '));
+  const [softSkillsRaw, setSoftSkillsRaw] = useState(() => loadSaved().softSkills.join(', '));
   const [certsRaw, setCertsRaw] = useState(() => loadSaved().certifications.join('\n'));
   const [targetJd, setTargetJd] = useState('');
   const [showTarget, setShowTarget] = useState(false);
@@ -51,15 +53,53 @@ export function ResumeBuilder() {
     setResume((r) => ({ ...r, [key]: value }));
   }
 
+  function parseList(raw: string): string[] {
+    return raw
+      .split(/[,\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
   function setSkills(raw: string) {
     setSkillsRaw(raw);
-    set(
-      'skills',
-      raw
-        .split(/[,\n]/)
-        .map((s) => s.trim())
-        .filter(Boolean),
-    );
+    set('skills', parseList(raw));
+  }
+
+  function setSoftSkills(raw: string) {
+    setSoftSkillsRaw(raw);
+    set('softSkills', parseList(raw));
+  }
+
+  function onPhotoUpload(file: File | undefined) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        // Downscale and crop to a small square so localStorage stays tiny.
+        const size = 240;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const side = Math.min(img.width, img.height);
+        ctx.drawImage(
+          img,
+          (img.width - side) / 2,
+          (img.height - side) / 2,
+          side,
+          side,
+          0,
+          0,
+          size,
+          size,
+        );
+        set('photo', canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
   }
 
   function setCerts(raw: string) {
@@ -125,13 +165,46 @@ export function ResumeBuilder() {
           <h3 style={{ marginTop: 0 }}>
             Skills <span className="field-hint">comma-separated — this is the #1 ATS keyword zone</span>
           </h3>
+          <div className="seg-row" role="radiogroup" aria-label="Skills layout">
+            <button
+              type="button"
+              className="seg-btn"
+              data-active={resume.skillsMode === 'combined'}
+              onClick={() => set('skillsMode', 'combined')}
+            >
+              All in one list
+            </button>
+            <button
+              type="button"
+              className="seg-btn"
+              data-active={resume.skillsMode === 'split'}
+              onClick={() => set('skillsMode', 'split')}
+            >
+              Hard / soft split
+            </button>
+          </div>
           <textarea
             className="resume-box"
-            style={{ minHeight: 70 }}
+            style={{ minHeight: 70, marginTop: 10 }}
             value={skillsRaw}
             onChange={(e) => setSkills(e.target.value)}
-            placeholder="JavaScript, React, Customer service, POS systems, …"
+            placeholder={
+              resume.skillsMode === 'split'
+                ? 'Hard skills: JavaScript, React, POS systems, Excel, …'
+                : 'JavaScript, React, Customer service, POS systems, …'
+            }
+            aria-label={resume.skillsMode === 'split' ? 'Hard skills' : 'Skills'}
           />
+          {resume.skillsMode === 'split' && (
+            <textarea
+              className="resume-box"
+              style={{ minHeight: 70, marginTop: 10 }}
+              value={softSkillsRaw}
+              onChange={(e) => setSoftSkills(e.target.value)}
+              placeholder="Soft skills: Communication, Teamwork, Problem solving, …"
+              aria-label="Soft skills"
+            />
+          )}
         </div>
 
         <div className="input-card">
@@ -182,7 +255,7 @@ export function ResumeBuilder() {
         </div>
 
         <div className="input-card">
-          <h3 style={{ marginTop: 0 }}>Education & certifications</h3>
+          <h3 style={{ marginTop: 0 }}>Education</h3>
           {resume.education.map((e, idx) => (
             <div className="form-grid three" key={e.id} style={{ marginBottom: 8 }}>
               <input placeholder="Degree / qualification" value={e.degree} onChange={(ev) => updateEducation(e.id, { degree: ev.target.value })} aria-label={`Education ${idx + 1} degree`} />
@@ -202,14 +275,70 @@ export function ResumeBuilder() {
           >
             + Add education
           </button>
+        </div>
+
+        <div className="input-card">
+          <h3 style={{ marginTop: 0 }}>
+            Certifications & achievements <span className="field-hint">one per line</span>
+          </h3>
           <textarea
             className="resume-box"
-            style={{ minHeight: 60, marginTop: 12 }}
+            style={{ minHeight: 70 }}
             value={certsRaw}
             onChange={(e) => setCerts(e.target.value)}
-            placeholder={'Certifications, one per line (RSA, First Aid, AWS Cloud Practitioner…)'}
-            aria-label="Certifications"
+            placeholder={'RSA (Responsible Service of Alcohol)\nFirst Aid & CPR\nEmployee of the Month, March 2025'}
+            aria-label="Certifications and achievements"
           />
+        </div>
+
+        <div className="input-card">
+          <h3 style={{ marginTop: 0 }}>Resume style</h3>
+          <div className="seg-row" role="radiogroup" aria-label="Resume style">
+            <button
+              type="button"
+              className="seg-btn"
+              data-active={resume.template === 'ats'}
+              onClick={() => set('template', 'ats')}
+            >
+              ATS-first (recommended)
+            </button>
+            <button
+              type="button"
+              className="seg-btn"
+              data-active={resume.template === 'photo'}
+              onClick={() => set('template', 'photo')}
+            >
+              One-page with photo
+            </button>
+          </div>
+          {resume.template === 'photo' && (
+            <div style={{ marginTop: 12 }}>
+              <div className="controls-row">
+                <label className="btn btn-ghost" style={{ cursor: 'pointer' }}>
+                  {resume.photo ? 'Change photo' : 'Upload photo'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => onPhotoUpload(e.target.files?.[0])}
+                  />
+                </label>
+                {resume.photo && (
+                  <>
+                    <img src={resume.photo} alt="Uploaded" style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }} />
+                    <button type="button" className="btn btn-ghost" onClick={() => set('photo', undefined)}>
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+              <p className="field-hint" style={{ display: 'block', marginTop: 10, marginLeft: 0 }}>
+                Use this style for in-person, hospitality, and human-first applications. For online
+                applications through job portals, the ATS-first style parses more reliably — many
+                ATS systems can't read photos, and in some countries photos invite bias screening.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="input-card">
@@ -270,15 +399,18 @@ export function ResumeBuilder() {
         <div className="section" style={{ marginTop: 14 }}>
           <h3>Download</h3>
           <p className="section-sub">
-            PDF opens your browser's print dialog — choose “Save as PDF”. The layout is
-            single-column and graphics-free on purpose: that's the format ATS parsers read best.
+            PDF opens your browser's print dialog — choose “Save as PDF”. Word (.doc) downloads
+            directly and opens in Word, Google Docs, and LibreOffice.
           </p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-primary" onClick={() => window.print()}>
-              Download as PDF
+              Download PDF
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => downloadDoc(resume)}>
+              Download Word (.doc)
             </button>
             <button type="button" className="btn btn-ghost" onClick={downloadTxt}>
-              Download .txt
+              .txt
             </button>
           </div>
         </div>
