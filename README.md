@@ -1,16 +1,23 @@
 # JobLens 🔍
 
-**X-ray a job posting before you waste an application.**
+**The privacy-first job-hunt toolkit: build, search, verify.**
 
-Paste any job posting and JobLens tells you, in seconds:
+Three tools in one page:
+
+### 📄 Resume Builder
+Fill in your details and get a **live ATS-readiness score (0–100)** with a point-by-point checklist: action verbs, quantified bullets, keyword zones, contact completeness. Optionally paste a target job posting and the score includes **keyword coverage against that exact job**. Download as PDF (via a deliberately single-column, graphics-free print layout — the format that scores ~18 points higher in real ATS scans) or as plain .txt. Your data saves to your own browser's localStorage and never leaves your device.
+
+### 🔎 Job Search
+Search live listings from free public job feeds (Remotive, Arbeitnow). The killer feature: **every result is auto-scanned by the JobLens analysis engine** and badged — Looks clean / Some flags / Ghost-job signals / Scam signals — before you click. One click hands any listing to the full analyzer. Only your search term is sent to the feeds; nothing else ever leaves the page.
+
+### 🛡️ Check a Posting
+Paste any job posting and get a verdict in seconds:
 
 - 👻 **Ghost-job risk** — is anyone actually being hired for this role?
 - 🛑 **Scam signals** — patterns drawn from FTC consumer alerts on employment fraud
 - 🗣️ **Buzzword decoder** — what "fast-paced environment" and "we're like a family" usually mean
 - 📋 **Requirements, decoded** — genuine must-haves vs. the wishlist, plus requirements-inflation warnings ("entry level, 5+ years experience")
-- 🎯 **ATS resume match** — paste your resume and get keyword coverage, synonym-aware gap analysis, and exact-wording advice
-
-**Privacy-first by design: everything runs in your browser.** Nothing you paste is uploaded, stored, or sent anywhere — the app makes no network requests with your data.
+- 🎯 **ATS resume match** — keyword coverage with synonym-aware gap analysis and exact-wording advice
 
 ## Why this exists
 
@@ -25,13 +32,15 @@ Every rule in JobLens maps to one of those documented failure modes. It doesn't 
 ## Tech
 
 - **React 19 + TypeScript + Vite** — fully static, deployable anywhere (GitHub Pages, Vercel, Netlify)
+- **Resume engine** (`src/resume/`) — data model, plain-text assembly with standard ATS headings, and a weighted scoring rubric (`atsCheck.ts`) that rebalances to 70% content / 30% keyword coverage when targeting a posting
+- **Job search** (`src/jobsearch/`) — keyless public APIs, per-source failure tolerance, HTML-stripped normalization
 - **Pure analysis engine** (`src/engine/`) — every heuristic is a dependency-free, unit-tested TypeScript module:
   - `ghost.ts` — weighted ghost-job risk scoring (posting age, hidden pay, pipeline language, thin/generic descriptions, stale urgency)
   - `scam.ts` — FTC-pattern scam detection with evidence capture
   - `buzzwords.ts` — 20+ corporate-speak translations
   - `requirements.ts` — must-have vs. nice-to-have classification + inflation detection
   - `keywords.ts` / `matcher.ts` — synonym-aware ATS keyword extraction and resume matching across tech, office, and hospitality skills
-- **28 unit tests** (Vitest) over realistic posting fixtures — genuine, ghost, and scam
+- **36 unit tests** (Vitest) over realistic fixtures — genuine, ghost, and scam postings plus resume scoring
 
 ## Run it
 

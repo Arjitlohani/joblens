@@ -480,6 +480,255 @@ select {
   color: var(--ink);
 }
 
+/* ---------- Tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 26px 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 18px;
+  cursor: pointer;
+}
+
+.tab-btn:hover {
+  color: var(--ink);
+}
+
+.tab-btn[data-active='true'] {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+/* ---------- Resume builder ---------- */
+
+.builder-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.builder-side {
+  position: sticky;
+  top: 16px;
+}
+
+.preview-wrap {
+  grid-column: 1 / -1;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-grid.three {
+  grid-template-columns: 1.2fr 1.2fr 0.8fr;
+}
+
+.form-grid.two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-grid input,
+.search-input {
+  background: var(--page);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  min-width: 0;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.exp-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.exp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.check-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.check-item[data-passed='true'] .check-mark {
+  color: var(--good);
+}
+
+.check-item[data-passed='false'] .check-mark {
+  color: var(--ink-muted);
+}
+
+.check-mark {
+  font-weight: 800;
+}
+
+.check-pts {
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+  margin-left: 4px;
+}
+
+.check-tip {
+  color: var(--ink-muted);
+  font-size: 0.83rem;
+  margin-top: 2px;
+}
+
+/* The printable sheet — deliberately plain, always light. */
+.resume-sheet {
+  background: #ffffff;
+  color: #111111;
+  border-radius: 6px;
+  padding: 44px 48px;
+  max-width: 800px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+.resume-sheet h1 {
+  font-size: 1.7rem;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.resume-sheet .rs-headline {
+  font-size: 1.05rem;
+  margin: 2px 0 0;
+  color: #333333;
+}
+
+.resume-sheet .rs-contact {
+  margin: 6px 0 0;
+  color: #444444;
+  font-size: 0.88rem;
+}
+
+.resume-sheet h2 {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-bottom: 1.5px solid #222222;
+  padding-bottom: 3px;
+  margin: 22px 0 8px;
+}
+
+.resume-sheet p {
+  margin: 4px 0;
+}
+
+.resume-sheet ul {
+  margin: 4px 0;
+  padding-left: 20px;
+}
+
+.resume-sheet li {
+  margin: 3px 0;
+}
+
+.resume-sheet .rs-role {
+  margin-bottom: 12px;
+}
+
+.resume-sheet .rs-role-meta {
+  color: #555555;
+  font-size: 0.85rem;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .resume-sheet,
+  .resume-sheet * {
+    visibility: visible;
+  }
+
+  .resume-sheet {
+    position: absolute;
+    inset: 0;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    max-width: none;
+  }
+
+  @page {
+    margin: 1.6cm;
+  }
+}
+
+/* ---------- Job search ---------- */
+
+.job-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+
+.job-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.job-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.job-meta {
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.job-snippet {
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  margin: 10px 0 0;
+}
+
+.job-card .btn {
+  text-decoration: none;
+}
+
 /* ---------- Footer ---------- */
 
 .footer {
@@ -498,10 +747,26 @@ select {
   margin-bottom: 6px;
 }
 
+@media (max-width: 900px) {
+  .builder-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .builder-side {
+    position: static;
+  }
+}
+
 @media (max-width: 720px) {
   .stats-strip,
-  .req-columns {
+  .req-columns,
+  .form-grid,
+  .form-grid.three {
     grid-template-columns: 1fr;
+  }
+
+  .resume-sheet {
+    padding: 24px 20px;
   }
 
   .buzz-row {

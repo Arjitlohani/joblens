@@ -1,0 +1,98 @@
+import { describe, expect, it } from 'vitest';
+import { buildResumeText } from '../buildText';
+import { atsCheck } from '../atsCheck';
+import { emptyResume, type ResumeData } from '../types';
+
+function strongResume(): ResumeData {
+  return {
+    fullName: 'Sam Candidate',
+    email: 'sam@example.com',
+    phone: '+1 555 010 1234',
+    location: 'Denver, CO',
+    links: 'linkedin.com/in/samcandidate',
+    headline: 'Frontend Developer',
+    summary:
+      'Frontend developer with 3 years of experience building accessible React applications. Shipped customer-facing features used by 40,000 monthly users and cut page load times by 45%.',
+    skills: ['JavaScript', 'TypeScript', 'React', 'CSS', 'Git', 'REST APIs', 'Jest'],
+    experience: [
+      {
+        id: 'e1',
+        title: 'Frontend Developer',
+        company: 'Acme Corp',
+        location: 'Remote',
+        start: 'Jun 2023',
+        end: 'Present',
+        bullets: [
+          'Built a React component library adopted by 4 product teams',
+          'Reduced bundle size 35% by code-splitting and dependency audits',
+          'Led migration of 120 screens from JavaScript to TypeScript',
+        ],
+      },
+    ],
+    education: [{ id: 'ed1', degree: 'BSc Computer Science', school: 'State University', year: '2022' }],
+    certifications: ['AWS Cloud Practitioner'],
+  };
+}
+
+describe('buildResumeText', () => {
+  it('assembles standard ATS headings in order', () => {
+    const text = buildResumeText(strongResume());
+    const idx = (h: string) => text.indexOf(h);
+    expect(idx('PROFESSIONAL SUMMARY')).toBeGreaterThan(-1);
+    expect(idx('SKILLS')).toBeGreaterThan(idx('PROFESSIONAL SUMMARY'));
+    expect(idx('WORK EXPERIENCE')).toBeGreaterThan(idx('SKILLS'));
+    expect(idx('EDUCATION')).toBeGreaterThan(idx('WORK EXPERIENCE'));
+    expect(idx('CERTIFICATIONS')).toBeGreaterThan(idx('EDUCATION'));
+  });
+
+  it('omits empty sections', () => {
+    const text = buildResumeText(emptyResume());
+    expect(text).not.toContain('WORK EXPERIENCE');
+    expect(text).not.toContain('SKILLS');
+  });
+
+  it('renders bullets with dashes', () => {
+    const text = buildResumeText(strongResume());
+    expect(text).toContain('- Built a React component library');
+  });
+});
+
+describe('atsCheck', () => {
+  it('scores a strong resume highly', () => {
+    const s = atsCheck(strongResume());
+    expect(s.score).toBeGreaterThanOrEqual(85);
+  });
+
+  it('scores an empty resume low but not zero (format points are by construction)', () => {
+    const s = atsCheck(emptyResume());
+    expect(s.score).toBeGreaterThan(0);
+    expect(s.score).toBeLessThan(40);
+  });
+
+  it('rewards keyword coverage against a target posting', () => {
+    const jd =
+      'We need a developer with React, TypeScript, Jest and Git experience. Strong communication skills required.';
+    const withTarget = atsCheck(strongResume(), jd);
+    expect(withTarget.keywordCoverage).toBeGreaterThanOrEqual(60);
+    expect(withTarget.missingKeywords).toContain('communication');
+  });
+
+  it('fails the action-verb check when bullets are weak', () => {
+    const r = strongResume();
+    r.experience[0].bullets = [
+      'Responsible for the component library',
+      'Was involved in performance work',
+      'Duties included TypeScript migration',
+    ];
+    const s = atsCheck(r);
+    const verbs = s.items.find((i) => i.id === 'verbs');
+    expect(verbs?.passed).toBe(false);
+  });
+
+  it('detects missing contact details', () => {
+    const r = strongResume();
+    r.phone = '';
+    const s = atsCheck(r);
+    expect(s.items.find((i) => i.id === 'contact')?.passed).toBe(false);
+  });
+});
