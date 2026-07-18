@@ -38,10 +38,12 @@ export interface ResumeData {
   education: EducationEntry[];
   /** Certifications and achievements — rendered as one section. */
   certifications: string[];
-  /** 'ats': parser-first layout. 'photo': compact one-page with a photo. */
+  /** 'ats': parser-first layout. 'photo': one-page sidebar layout with a photo. */
   template: ResumeTemplate;
   /** Data-URL of the photo, only used by the 'photo' template. */
   photo?: string;
+  /** Sidebar color for the 'photo' template. */
+  accentColor: string;
 }
 
 export function emptyResume(): ResumeData {
@@ -61,6 +63,7 @@ export function emptyResume(): ResumeData {
     certifications: [],
     template: 'ats',
     photo: undefined,
+    accentColor: '#2c4a63',
   };
 }
 

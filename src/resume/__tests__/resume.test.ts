@@ -19,6 +19,7 @@ function strongResume(): ResumeData {
     softSkills: [],
     template: 'ats' as const,
     photo: undefined,
+    accentColor: '#2c4a63',
     experience: [
       {
         id: 'e1',
@@ -100,6 +101,33 @@ describe('buildDocHtml', () => {
     expect(buildDocHtml(r)).not.toContain('<img');
     r.template = 'photo';
     expect(buildDocHtml(r)).toContain('<img src="data:image/jpeg;base64,abc"');
+  });
+
+  it('renders the photo template as a two-column sidebar table', () => {
+    const r = strongResume();
+    r.template = 'photo';
+    const html = buildDocHtml(r);
+    expect(html).toContain('td.side { background: #2c4a63');
+    expect(html).toContain('width: 33%');
+    expect(html).toContain('width: 67%');
+    // Sidebar holds contact + education + skills; main holds summary/experience/certs.
+    const side = html.slice(html.indexOf('<td class="side">'), html.indexOf('<td class="main">'));
+    const main = html.slice(html.indexOf('<td class="main">'));
+    expect(side).toContain('Education');
+    expect(side).toContain('Skills');
+    expect(side).toContain('sam@example.com');
+    expect(main).toContain('Professional Summary');
+    expect(main).toContain('Work Experience');
+    expect(main).toContain('Certifications &amp; Achievements');
+  });
+});
+
+describe('sidebarInk', () => {
+  it('uses white text on dark colors and dark text on light colors', async () => {
+    const { sidebarInk } = await import('../color');
+    expect(sidebarInk('#2c4a63')).toBe('#ffffff');
+    expect(sidebarInk('#f5d97a')).toBe('#1a1a1a');
+    expect(sidebarInk('not-a-color')).toBe('#ffffff');
   });
 });
 

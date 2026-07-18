@@ -331,6 +331,15 @@ export function ResumeBuilder() {
                     </button>
                   </>
                 )}
+                <label className="color-pick">
+                  Sidebar color
+                  <input
+                    type="color"
+                    value={resume.accentColor}
+                    onChange={(e) => set('accentColor', e.target.value)}
+                    aria-label="Sidebar color"
+                  />
+                </label>
               </div>
               <p className="field-hint" style={{ display: 'block', marginTop: 10, marginLeft: 0 }}>
                 Use this style for in-person, hospitality, and human-first applications. For online

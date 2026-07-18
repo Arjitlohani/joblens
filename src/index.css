@@ -620,38 +620,101 @@ select {
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
 }
 
-.rs-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: flex-start;
-}
-
-.rs-photo {
-  width: 86px;
-  height: 86px;
-  object-fit: cover;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
-
-/* Compact one-page variant. */
+/* Colorful one-page sidebar variant: 1/3 side panel, 2/3 main column. */
 .resume-sheet[data-template='photo'] {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  padding: 0;
+  overflow: hidden;
   font-size: 0.88rem;
   line-height: 1.42;
-  padding: 34px 38px;
 }
 
-.resume-sheet[data-template='photo'] h1 {
-  font-size: 1.45rem;
+.resume-sheet[data-template='photo'] .rs-side {
+  background: var(--rs-accent, #2c4a63);
+  color: var(--rs-accent-ink, #ffffff);
+  padding: 28px 22px;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
 }
 
-.resume-sheet[data-template='photo'] h2 {
-  margin: 14px 0 5px;
+.resume-sheet[data-template='photo'] .rs-side h1 {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin-top: 14px;
+}
+
+.resume-sheet[data-template='photo'] .rs-side .rs-headline {
+  color: var(--rs-accent-ink, #ffffff);
+  opacity: 0.85;
+  font-size: 0.92rem;
+}
+
+.resume-sheet[data-template='photo'] .rs-side h2 {
+  border-bottom-color: var(--rs-accent-ink, #ffffff);
+  margin: 18px 0 6px;
+}
+
+.resume-sheet[data-template='photo'] .rs-side p,
+.resume-sheet[data-template='photo'] .rs-side li {
+  color: var(--rs-accent-ink, #ffffff);
+}
+
+.rs-contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0;
+}
+
+.rs-contact-list li {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.resume-sheet[data-template='photo'] .rs-photo {
+  display: block;
+  width: 128px;
+  height: 128px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 0 auto;
+  border: 3px solid var(--rs-accent-ink, #ffffff);
+}
+
+.resume-sheet[data-template='photo'] .rs-main {
+  padding: 28px 30px;
+}
+
+.resume-sheet[data-template='photo'] .rs-main h2:first-child {
+  margin-top: 0;
+}
+
+.resume-sheet[data-template='photo'] .rs-main h2 {
+  color: var(--rs-accent, #2c4a63);
+  border-bottom-color: var(--rs-accent, #2c4a63);
 }
 
 .resume-sheet[data-template='photo'] .rs-role {
-  margin-bottom: 8px;
+  margin-bottom: 9px;
+}
+
+.color-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: 0.88rem;
+}
+
+.color-pick input[type='color'] {
+  width: 40px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
 }
 
 /* Segmented option buttons. */
